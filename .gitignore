@@ -1,0 +1,34 @@
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Database and generated vector data
+data/
+chroma/
+*.db
+
+# Gmail credentials
+credentials.json
+token.json
+
+# IDE and system files
+.vscode/
+.idea/
+.DS_Store
+
+# Runtime and generated files
+*.log
+*.sqlite
+*.sqlite3
+
+# Python test cache
+.pytest_cache/
+.coverage
+htmlcov/

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <title>Grievance RAG | Operations Dashboard</title>
+  <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">G</div>
+        <div><strong>Resolve<span>AI</span></strong><small>GRIEVANCE OPERATIONS</small></div>
+      </div>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav>
+        <a class="nav-item active" href="#overview"><span>▦</span> Overview</a>
+        <a class="nav-item" href="#tickets"><span>▤</span> All grievances</a>
+        <a class="nav-item" href="#create"><span>＋</span> Submit grievance</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="secure-note"><span class="pulse"></span><div><b>Local API connection</b><small>Your API key stays in this browser tab.</small></div></div>
+        <div class="sidebar-foot">GRIEVANCE RAG · PRIVATE WORKSPACE</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><div class="eyebrow">WORKSPACE / OPERATIONS</div><h1>Grievance dashboard</h1></div>
+        <div class="top-actions">
+          <div class="connection" id="connection"><i></i><span>Checking API…</span></div>
+          <button class="icon-button" id="refreshBtn" title="Refresh data">↻</button>
+          <button class="avatar" title="Workspace">R</button>
+        </div>
+      </header>
+
+      <section class="config-strip">
+        <div class="config-title"><b>API connection</b><small>Connect this dashboard to your running FastAPI backend.</small></div>
+        <label>API URL<input id="apiUrl" value="" placeholder="http://127.0.0.1:8000"></label>
+        <label>API key<input id="apiKey" type="password" placeholder="Enter your API_KEY from .env"></label>
+        <button class="btn btn-dark" id="connectBtn">Connect</button>
+      </section>
+
+      <section id="overview" class="section">
+        <div class="section-heading"><div><div class="eyebrow">LIVE OVERVIEW</div><h2>Service at a glance</h2></div><span class="updated" id="lastUpdated">Not connected</span></div>
+        <div class="stats-grid">
+          <article class="stat-card"><div class="stat-top"><span>Total grievances</span><span class="stat-icon blue">▤</span></div><strong id="totalCount">—</strong><small>Tickets in your database</small></article>
+          <article class="stat-card"><div class="stat-top"><span>Needs review</span><span class="stat-icon amber">◷</span></div><strong id="reviewCount">—</strong><small>Waiting for human approval</small></article>
+          <article class="stat-card"><div class="stat-top"><span>Ready to resolve</span><span class="stat-icon green">✓</span></div><strong id="newCount">—</strong><small>Confident draft responses</small></article>
+          <article class="stat-card"><div class="stat-top"><span>Resolved</span><span class="stat-icon violet">✦</span></div><strong id="resolvedCount">—</strong><small>Marked as completed</small></article>
+        </div>
+      </section>
+
+      <section id="tickets" class="section">
+        <div class="section-heading"><div><div class="eyebrow">CASE MANAGEMENT</div><h2>Grievance queue</h2><p>Review classifications and approve suggested responses.</p></div>
+          <div class="filters"><input id="searchInput" class="search" placeholder="Search tickets…"><select id="statusFilter"><option value="all">All statuses</option><option value="needs_review">Needs review</option><option value="new">Ready to resolve</option><option value="resolved">Resolved</option></select></div>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>CASE</th><th>CATEGORY</th><th>PRIORITY</th><th>CONFIDENCE</th><th>STATUS</th><th>SOURCE</th><th></th></tr></thead>
+          <tbody id="ticketRows"><tr><td colspan="7" class="empty">Connect to your API to load grievances.</td></tr></tbody></table>
+        </div>
+      </section>
+
+      <section id="create" class="section create-section">
+        <div class="section-heading"><div><div class="eyebrow">MANUAL INTAKE</div><h2>Submit a grievance</h2><p>Test the classification and RAG response pipeline with a sample complaint.</p></div></div>
+        <form id="grievanceForm" class="submit-form">
+          <label>Grievance details<textarea id="grievanceText" required minlength="3" maxlength="20000" placeholder="Example: I paid for my order but the amount was deducted twice…"></textarea></label>
+          <div class="form-bottom"><span>Personal information is redacted by the backend before storage and LLM processing.</span><button class="btn btn-primary" type="submit">Analyze grievance <span>→</span></button></div>
+        </form>
+      </section>
+
+      <footer>ResolveAI · Powered by retrieval-augmented generation <span id="kbStatus">Knowledge base: checking…</span></footer>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="ticketModal">
+    <div class="modal">
+      <div class="modal-head"><div><div class="eyebrow">CASE DETAILS</div><h2 id="modalTitle">Grievance #—</h2></div><button class="icon-button" id="closeModal">×</button></div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+chromadb
+openai
+python-dotenv
+google-api-python-client
+google-auth-oauthlib
+pytest

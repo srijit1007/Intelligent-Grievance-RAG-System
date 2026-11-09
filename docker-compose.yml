@@ -1,0 +1,12 @@
+services:
+  api:
+    build: .
+    env_file: .env
+    ports: ["8000:8000"]
+    volumes: ["./data:/srv/data", "./kb:/srv/kb"]
+  n8n:
+    image: n8nio/n8n
+    ports: ["5678:5678"]
+    volumes: ["n8n:/home/node/.n8n"]
+volumes:
+  n8n:
