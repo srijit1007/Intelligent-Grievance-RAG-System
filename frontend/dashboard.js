@@ -2,7 +2,7 @@ const $ = (id) => document.getElementById(id);
 let tickets = [];
 let selectedTicket = null;
 const savedKey = sessionStorage.getItem("grievance_api_key") || "";
-$("apiUrl").value = window.location.origin.startsWith("http") ? window.location.origin : "http://127.0.0.1:8000";
+$("apiUrl").value = "https://intelligent-grievance-rag-system.onrender.com";
 $("apiKey").value = savedKey;
 
 function apiBase(){ return $("apiUrl").value.trim().replace(/\/+$/,""); }
