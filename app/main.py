@@ -54,6 +54,7 @@ app = FastAPI(title="Grievance RAG", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://intelligent-grievance-rag-system-fr.vercel.app",
         "https://intelligent-grievance-rag-system-fr-iota.vercel.app"
     ],
     allow_credentials=False,
