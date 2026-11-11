@@ -1,26 +1,185 @@
+
 {
   "name": "Grievance Auto-Resolution",
   "nodes": [
-    {"parameters": {"pollTimes": {"item": [{"mode": "everyMinute"}]}, "simple": true, "filters": {"labelIds": ["INBOX"], "readStatus": "unread"}},
-     "name": "Gmail Trigger", "type": "n8n-nodes-base.gmailTrigger", "typeVersion": 1.2, "position": [0, 0]},
-    {"parameters": {"method": "POST", "url": "http://api:8000/grievance", "sendHeaders": true,
-       "headerParameters": {"parameters": [{"name": "X-API-Key", "value": "change-me"}]},
-       "sendBody": true, "specifyBody": "json",
-       "jsonBody": "={{ JSON.stringify({text: $json.subject + '\\n' + ($json.text || $json.snippet), source: 'n8n', ref: $json.id}) }}"},
-     "name": "RAG API", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [260, 0]},
-    {"parameters": {"conditions": {"options": {"caseSensitive": true, "typeValidation": "strict"}, "combinator": "and",
-       "conditions": [{"leftValue": "={{ $json.status }}", "rightValue": "new", "operator": {"type": "string", "operation": "equals"}}]}},
-     "name": "Confident?", "type": "n8n-nodes-base.if", "typeVersion": 2, "position": [520, 0]},
-    {"parameters": {"operation": "reply", "messageId": "={{ $('Gmail Trigger').item.json.id }}", "message": "={{ $json.reply }}", "options": {}},
-     "name": "Gmail Reply", "type": "n8n-nodes-base.gmail", "typeVersion": 2.1, "position": [780, -80]},
-    {"parameters": {"method": "POST", "url": "=http://api:8000/tickets/{{ $('RAG API').item.json.id }}/approve", "sendHeaders": true,
-       "headerParameters": {"parameters": [{"name": "X-API-Key", "value": "change-me"}]}},
-     "name": "Mark Resolved", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [1040, -80]}
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": true,
+        "filters": {
+          "labelIds": [
+            "INBOX"
+          ],
+          "readStatus": "unread"
+        }
+      },
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "gmail-trigger-001"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://intelligent-grievance-rag-system.onrender.com/grievance",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "Rgrievance-demo-secret-2026"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { text: 'Subject: ' + ($json.subject || 'No subject') + '\\n\\n' + ($json.textPlain || $json.text || $json.snippet || ''), source: 'n8n', ref: String($json.id || $json.messageId || '') } }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "RAG API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        0
+      ],
+      "id": "rag-api-001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "status-check-001",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "new",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Confident?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "confidence-check-001"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "message": "={{ $json.reply }}",
+        "options": {}
+      },
+      "name": "Gmail Reply",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        840,
+        -100
+      ],
+      "id": "gmail-reply-001"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://intelligent-grievance-rag-system.onrender.com/tickets/' + $('RAG API').item.json.id + '/approve' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "REPLACE_WITH_YOUR_API_KEY"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Mark Resolved",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        -100
+      ],
+      "id": "mark-resolved-001"
+    }
   ],
   "connections": {
-    "Gmail Trigger": {"main": [[{"node": "RAG API", "type": "main", "index": 0}]]},
-    "RAG API": {"main": [[{"node": "Confident?", "type": "main", "index": 0}]]},
-    "Confident?": {"main": [[{"node": "Gmail Reply", "type": "main", "index": 0}], []]},
-    "Gmail Reply": {"main": [[{"node": "Mark Resolved", "type": "main", "index": 0}]]}
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "RAG API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG API": {
+      "main": [
+        [
+          {
+            "node": "Confident?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confident?": {
+      "main": [
+        [
+          {
+            "node": "Gmail Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Gmail Reply": {
+      "main": [
+        [
+          {
+            "node": "Mark Resolved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
   }
 }

@@ -9,6 +9,8 @@ from . import config as C, db, gmail, llm, rag
 from .pii import redact
 from fastapi.middleware.cors import CORSMiddleware
 
+
+
 log = logging.getLogger("grievance")  # never log message text
 
 
@@ -48,10 +50,11 @@ async def lifespan(_):
 
 
 app = FastAPI(title="Grievance RAG", lifespan=lifespan)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://intelligent-grievance-rag-system-fr-two.vercel.app"
+        "https://intelligent-grievance-rag-system-fr-iota.vercel.app"
     ],
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
