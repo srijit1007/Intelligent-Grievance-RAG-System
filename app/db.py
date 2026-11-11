@@ -1,7 +1,6 @@
 
-import os
-import sqlite3
 import time
+import turso_serverless
 
 from . import config as C
 
@@ -25,24 +24,28 @@ ALLOWED_UPDATE_FIELDS = {
 
 
 def _c():
-    db_dir = os.path.dirname(C.DB_PATH)
-    if db_dir:
-        os.makedirs(db_dir, exist_ok=True)
+    if not C.TURSO_DATABASE_URL or not C.TURSO_AUTH_TOKEN:
+        raise RuntimeError("Turso credentials are not configured")
 
-    conn = sqlite3.connect(
-        C.DB_PATH,
-        timeout=30,
+    return turso_serverless.connect(
+        C.TURSO_DATABASE_URL,
+        auth_token=C.TURSO_AUTH_TOKEN
     )
 
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA busy_timeout = 30000")
-    conn.execute("PRAGMA journal_mode = WAL")
 
-    return conn
+def _dict_rows(cursor):
+    """Convert Turso tuple rows into dictionaries."""
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
 
 
 def init():
-    with _c() as conn:
+    conn = _c()
+
+    try:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS tickets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,14 +63,17 @@ def init():
             )
         """)
 
-        # Add updated column to older databases if necessary.
         columns = {
-            row["name"]
-            for row in conn.execute("PRAGMA table_info(tickets)")
+            row[1]
+            for row in conn.execute(
+                "PRAGMA table_info(tickets)"
+            ).fetchall()
         }
 
         if "updated" not in columns:
-            conn.execute("ALTER TABLE tickets ADD COLUMN updated REAL")
+            conn.execute(
+                "ALTER TABLE tickets ADD COLUMN updated REAL"
+            )
 
         conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_tickets_status
@@ -84,14 +90,24 @@ def init():
             ON tickets(ref)
         """)
 
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        conn.close()
+
 
 def add(source, ref, text, res, sources):
     now = time.time()
-
     status = "needs_review" if res["needs_human"] else "new"
 
-    with _c() as conn:
-        cur = conn.execute("""
+    conn = _c()
+
+    try:
+        cursor = conn.execute("""
             INSERT INTO tickets (
                 created, updated, source, ref, text,
                 category, priority, confidence, reply,
@@ -109,20 +125,36 @@ def add(source, ref, text, res, sources):
             res["confidence"],
             res["reply"],
             status,
-            ",".join(sources),
+            ",".join(sources)
         ))
 
-        return cur.lastrowid
+        ticket_id = cursor.lastrowid
+        conn.commit()
+
+        return int(ticket_id)
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        conn.close()
 
 
 def get(tid):
-    with _c() as conn:
-        row = conn.execute(
+    conn = _c()
+
+    try:
+        cursor = conn.execute(
             "SELECT * FROM tickets WHERE id = ?",
             (tid,)
-        ).fetchone()
+        )
 
-    return dict(row) if row else None
+        rows = _dict_rows(cursor)
+        return rows[0] if rows else None
+
+    finally:
+        conn.close()
 
 
 def list_(status=None, limit=50):
@@ -138,10 +170,14 @@ def list_(status=None, limit=50):
     query += f" ORDER BY {_ORDER} LIMIT ?"
     args.append(limit)
 
-    with _c() as conn:
-        rows = conn.execute(query, args).fetchall()
+    conn = _c()
 
-    return [dict(row) for row in rows]
+    try:
+        cursor = conn.execute(query, args)
+        return _dict_rows(cursor)
+
+    finally:
+        conn.close()
 
 
 def update(tid, **fields):
@@ -163,23 +199,40 @@ def update(tid, **fields):
 
     values = list(fields.values()) + [tid]
 
-    with _c() as conn:
-        cur = conn.execute(
+    conn = _c()
+
+    try:
+        cursor = conn.execute(
             f"UPDATE tickets SET {assignments} WHERE id = ?",
-            values,
+            values
         )
 
-        return cur.rowcount > 0
+        changed = cursor.rowcount > 0
+        conn.commit()
+
+        return changed
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        conn.close()
 
 
 def seen(ref):
     if not ref:
         return False
 
-    with _c() as conn:
-        row = conn.execute(
+    conn = _c()
+
+    try:
+        cursor = conn.execute(
             "SELECT 1 FROM tickets WHERE ref = ? LIMIT 1",
             (ref,)
-        ).fetchone()
+        )
 
-    return row is not None
+        return cursor.fetchone() is not None
+
+    finally:
+        conn.close()

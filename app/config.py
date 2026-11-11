@@ -36,3 +36,7 @@ GMAIL_POLL_SECONDS = int(e("GMAIL_POLL_SECONDS", "0"))
 AUTO_SEND = e("AUTO_SEND", "false").lower() == "true"
 GMAIL_CREDS = e("GMAIL_CREDS", "credentials.json")
 GMAIL_TOKEN = e("GMAIL_TOKEN", "data/token.json")
+
+# Turso Cloud Database Configuration
+TURSO_DATABASE_URL = e("TURSO_DATABASE_URL", "")
+TURSO_AUTH_TOKEN = e("TURSO_AUTH_TOKEN", "")
