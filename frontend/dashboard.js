@@ -60,14 +60,18 @@ async function request(path, options = {}) {
                 ...(options.headers || {})
             }
         });
-    } catch (error) {
-        console.error("Network/API connection error:", error);
+    }  catch (error) {
+    console.error("Network/API connection error:", {
+        url,
+        method: options.method || "GET",
+        error: error.message
+    });
 
-        throw new Error(
-            "Cannot reach the backend. Check the Render URL, " +
-            "backend status and CORS configuration."
-        );
-    }
+    throw new Error(
+        `Network request failed for ${options.method || "GET"} ${path}. ` +
+        "Check browser Console and Network tabs for CORS or preflight errors."
+    );
+}
 
     const raw = await response.text();
 
