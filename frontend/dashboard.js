@@ -214,7 +214,8 @@ function render() {
     const query = $("searchInput").value.trim().toLowerCase();
     const status = $("statusFilter").value;
 
-    const filtered = tickets.filter(t => {
+const filtered = tickets
+    .filter(t => {
         const matchesStatus =
             status === "all" || t.status === status;
 
@@ -227,7 +228,8 @@ function render() {
         ].join(" ").toLowerCase();
 
         return matchesStatus && searchableText.includes(query);
-    });
+    })
+    .sort((a, b) => Number(a.id) - Number(b.id));
 
     $("ticketRows").innerHTML = filtered.length
         ? filtered.map(t => `
