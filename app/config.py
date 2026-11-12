@@ -32,10 +32,14 @@ CONFIDENCE_MIN = float(e("CONFIDENCE_MIN", "0.6"))
 MAX_DISTANCE = float(e("MAX_DISTANCE", "1.3"))
 
 # Gmail Integration
+
+# Gmail Integration
 GMAIL_POLL_SECONDS = int(e("GMAIL_POLL_SECONDS", "0"))
 AUTO_SEND = e("AUTO_SEND", "false").lower() == "true"
-GMAIL_CREDS = e("GMAIL_CREDS", "credentials.json")
-GMAIL_TOKEN = e("GMAIL_TOKEN", "data/token.json")
+
+GMAIL_CLIENT_ID = e("GMAIL_CLIENT_ID", "")
+GMAIL_CLIENT_SECRET = e("GMAIL_CLIENT_SECRET", "")
+GMAIL_REFRESH_TOKEN = e("GMAIL_REFRESH_TOKEN", "")
 
 # Turso Cloud Database Configuration
 TURSO_DATABASE_URL = e("TURSO_DATABASE_URL", "")
